@@ -1,0 +1,53 @@
+version: "3.1"
+services:
+
+  # The Application
+  webserver:
+    build: docker/php-apache/
+    container_name: yourls-app
+    working_dir: /var/www
+    volumes:
+      - ./site/:/var/www/
+      - ./docker/php-apache/php-ini-overrides.ini:/usr/local/etc/php/php.ini
+      - ./docker/php-apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
+    environment:
+      YOURLS_DB_HOST: database
+      DB_PORT: 3306
+      YOURLS_DB_USER: root
+      YOURLS_DB_PASS: secret
+      YOURLS_DB_NAME: yourls
+      YOURLS_USER: admin
+      YOURLS_PASS: pwd
+      YOURLS_SITE: http://localhost:8080
+    ports:
+      - 8080:80
+
+  # The Database
+  database:
+    image: mysql:5.7
+    container_name: yourls-db
+    volumes:
+      - dbdata:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: yourls
+      MYSQL_USER: usite
+      MYSQL_PASSWORD: secret
+    ports:
+        - "33062:3306"
+        
+  # The phpmyadmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin-yourls
+    ports:
+      - 8182:80
+    environment:
+      MYSQL_USERNAME: root
+      MYSQL_ROOT_PASSWORD: secret
+      PMA_HOST: database
+    links:
+      - database:mysql
+      
+volumes:
+  dbdata:
